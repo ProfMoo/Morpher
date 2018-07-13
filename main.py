@@ -91,11 +91,35 @@ class Morpher:
 
 	def show_start_screen(self):
 		#game start screen
-		pass
+		self.screen.fill(BACKGROUNDCOLOR)
+		self.draw_text(TITLE, 50, BLACK, WIDTH/2, HEIGHT/4)
+		self.draw_text("Arrows to move, Space to jump", 22, BLACK, WIDTH/2, HEIGHT/2)
+		self.draw_text("Press a key to play", 22, BLACK, WIDTH/2, HEIGHT*(3/4.))
+		pg.display.flip()
+		self.wait_for_key()
 
 	def show_go_screen(self):
-		#game over / continue
-		pass
+		if not self.running:
+			return
+		self.screen.fill(BACKGROUNDCOLOR)
+		self.draw_text("GAME OVER", 50, BLACK, WIDTH/2, HEIGHT/4)
+		self.draw_text("Deaths: " + str(self.deaths), 22, BLACK, WIDTH/2, HEIGHT/2)
+		self.draw_text("Press a key to play again", 22, BLACK, WIDTH/2, HEIGHT*(3/4.))
+		pg.display.flip()
+		self.wait_for_key()
+
+	def wait_for_key(self):
+		waiting = True
+		while (waiting):
+			self.clock.tick(FPS)
+			for event in pg.event.get():
+				if event.type == pg.QUIT:
+					waiting = False
+					self.running = False
+				if event.type == pg.KEYUP:
+					waiting = False
+					if event.key == pg.K_ESCAPE:
+						self.terminate()
 
 	def draw_text(self, text, size, color, x, y):
 		font = pg.font.Font(self.font_name, size)
