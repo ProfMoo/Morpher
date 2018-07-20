@@ -16,7 +16,12 @@ PLAYER_FRICTION = -0.25
 PLAYER_GRAVITY = 5.
 PLAYER_JUMP = -40
 
+
 #starting platforms
+START = "start"
+MIDDLE = "middle"
+END = "end"
+#x and y in incs of 80
 PLATFORM_LIST = [[0, HEIGHT - 40, WIDTH*2, 40], \
 			[WIDTH/2 - 50, HEIGHT - 120, 100, 20], \
 			[125, HEIGHT - 350, 100, 20], \

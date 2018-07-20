@@ -68,6 +68,8 @@ class Morpher:
 			if event.type == pg.KEYUP:
 				if event.key == pg.K_ESCAPE:
 					self.terminate()
+				if event.key == pg.K_SPACE:
+					self.player.jump_cut()
 
 	def update(self):
 		#game loop (update)

@@ -11,11 +11,11 @@ class Spritesheet(object):
 		self.spritesheet = pg.image.load(filename).convert_alpha()
 		#self.spritesheet = pg.image.load(filename).convert()
 
-	def get_image(self, x, y, width, height, scalew, scaleh):
+	def get_image(self, x, y, width, height):
 		#grab an image out of a larger spritesheet
 		image = pg.Surface((width, height))
 		image.blit(self.spritesheet, (0, 0), (x, y, width, height))
-		image = pg.transform.scale(image, (math.trunc(width * scalew), height * scaleh))
+		image = pg.transform.scale(image, (math.trunc(width * 3.3), height * 3))
 		return image
 
 class Player(pg.sprite.Sprite):
@@ -23,7 +23,7 @@ class Player(pg.sprite.Sprite):
 		#reference to game
 		self.game = game
 
-		#JUST for images
+		#for images mostly
 		self.walking = False
 		self.jumping = False
 		self.current_frame = 0
@@ -45,14 +45,14 @@ class Player(pg.sprite.Sprite):
 		self.acc = np.array([0, 0], dtype = np.float64)
 
 	def load_images(self):
-		self.standing_frames = [self.game.spritesheet.get_image(441, 95, 17, 20, 3.3, 3),
-								self.game.spritesheet.get_image(464, 95, 17, 20, 3.3, 3)]
-		self.walk_frames_r = [self.game.spritesheet.get_image(648, 95, 16, 20, 3.3, 3),
-								self.game.spritesheet.get_image(671, 95, 16, 20, 3.3, 3)]
+		self.standing_frames = [self.game.spritesheet.get_image(441, 95, 17, 20),
+								self.game.spritesheet.get_image(464, 95, 17, 20)]
+		self.walk_frames_r = [self.game.spritesheet.get_image(648, 95, 16, 20),
+								self.game.spritesheet.get_image(671, 95, 16, 20)]
 		self.walk_frames_l = []
 		for frame in self.walk_frames_r:
 			self.walk_frames_l.append(pg.transform.flip(frame, True, False))
-		self.jump_frame = self.game.spritesheet.get_image(460, 95, 17, 20, 3.3, 3)
+		self.jump_frame = self.game.spritesheet.get_image(460, 95, 17, 20)
 
 	def update(self):
 		self.animate()
@@ -129,6 +129,7 @@ class Player(pg.sprite.Sprite):
 				if self.vel[1] < 0: #moving up
 					self.pos[1] = hits[0].rect.bottom + self.rect.height
 				self.vel[1] = 0
+				self.jumping = False
 				self.rect.y = self.pos[1]
 
 	def debugPlatforms(self, hits):
@@ -144,6 +145,11 @@ class Player(pg.sprite.Sprite):
 		else:
 			return False
 
+	def jump_cut(self):
+		if (self.jumping):
+			if (self.vel[1] < -15):
+				self.vel[1] = -15
+
 	def jump(self):
 		#jump only if standing on a platform
 		self.rect[1] += 1
@@ -151,17 +157,18 @@ class Player(pg.sprite.Sprite):
 		self.rect[1] -= 1
 		if (hits):
 			self.vel[1] = PLAYER_JUMP
+			self.jumping = True
 		elif (self.extraJumps == 1):
 			self.extraJumps -= 1
 			self.vel[1] = PLAYER_JUMP
+			self.jumping = True
 
 class Platform(pg.sprite.Sprite):
 	def __init__(self, game, x, y, w, h):
 		pg.sprite.Sprite.__init__(self)
 		self.game = game
-		images = [self.game.spritesheet.get_image(47, 116, 25, 25, w/20, h/20)] #self.game.spritesheet.get_image(64, 100, 22, 22, w/20, h/20)]
-		self.image = choice(images)
-		#self.image.fill(OBSTACLECOLOR)
+		self.image = pg.Surface((w, h))
+		self.image.fill(OBSTACLECOLOR)
 		self.rect = self.image.get_rect()
 		self.rect.x = x
 		self.rect.y = y
