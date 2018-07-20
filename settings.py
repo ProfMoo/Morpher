@@ -4,6 +4,8 @@ WIDTH = 640
 HEIGHT = 480
 FPS = 30
 FONT_NAME = 'arial'
+HS_FILE = "highscore.txt"
+SPRITESHEET = "spritesheet.png"
 
 #across gameplay
 PLAYER_DEATHS = 0
@@ -34,3 +36,4 @@ YELLOW = (255, 255, 0)
 OBSTACLECOLOR = (110, 110, 110)
 USERCOLOR = (200, 210, 45)
 BACKGROUNDCOLOR = (210, 210, 210)
+SPRITEBACKGROUND = (93, 128, 164)

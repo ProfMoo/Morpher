@@ -1,13 +1,41 @@
 #sprite classes
 import pygame as pg
 import numpy as np
+import math
+from random import choice
 from settings import *
+
+class Spritesheet(object):
+	#utility class for loading and parsing spritesheets
+	def __init__(self, filename):
+		self.spritesheet = pg.image.load(filename).convert_alpha()
+		#self.spritesheet = pg.image.load(filename).convert()
+
+	def get_image(self, x, y, width, height, scalew, scaleh):
+		#grab an image out of a larger spritesheet
+		image = pg.Surface((width, height))
+		image.blit(self.spritesheet, (0, 0), (x, y, width, height))
+		image = pg.transform.scale(image, (math.trunc(width * scalew), height * scaleh))
+		return image
 
 class Player(pg.sprite.Sprite):
 	def __init__(self, game):
+		#reference to game
+		self.game = game
+
+		#JUST for images
+		self.walking = False
+		self.jumping = False
+		self.current_frame = 0
+		self.last_update = 0
+		self.load_images()
+
+		#player jumps
+		self.extraJummps = 1
+
 		pg.sprite.Sprite.__init__(self)
-		self.image = pg.Surface((30, 40))
-		self.image.fill(USERCOLOR)
+		self.image = self.standing_frames[0]
+		self.image.set_colorkey(SPRITEBACKGROUND)
 		self.rect = self.image.get_rect()
 		self.rect.center = (WIDTH/2, HEIGHT/2)
 
@@ -15,12 +43,19 @@ class Player(pg.sprite.Sprite):
 		self.pos = np.array([WIDTH/2, HEIGHT/2], dtype = np.float64)
 		self.vel = np.array([0, 0], dtype = np.float64)
 		self.acc = np.array([0, 0], dtype = np.float64)
-		self.extraJumps = 1
 
-		#reference to game
-		self.game = game
+	def load_images(self):
+		self.standing_frames = [self.game.spritesheet.get_image(441, 95, 17, 20, 3.3, 3),
+								self.game.spritesheet.get_image(464, 95, 17, 20, 3.3, 3)]
+		self.walk_frames_r = [self.game.spritesheet.get_image(648, 95, 16, 20, 3.3, 3),
+								self.game.spritesheet.get_image(671, 95, 16, 20, 3.3, 3)]
+		self.walk_frames_l = []
+		for frame in self.walk_frames_r:
+			self.walk_frames_l.append(pg.transform.flip(frame, True, False))
+		self.jump_frame = self.game.spritesheet.get_image(460, 95, 17, 20, 3.3, 3)
 
 	def update(self):
+		self.animate()
 		self.acc = np.array([0, PLAYER_GRAVITY], dtype = np.float64)
 		keys = pg.key.get_pressed()
 		if keys[pg.K_LEFT]:
@@ -49,6 +84,30 @@ class Player(pg.sprite.Sprite):
 		# 	self.pos[0] = WIDTH
 
 		self.rect.midbottom = self.pos
+
+	def animate(self):
+		now = pg.time.get_ticks()
+		if (self.vel[0] != 0):
+			self.walking = True
+		else:
+			self.walking = False
+		#show walk animations
+		if (self.walking):
+			if (now - self.last_update > 100):
+				self.last_update = now
+				self.current_frame = (self.current_frame + 1) % len(self.walk_frames_l)
+				if (self.vel[0] > 0):			
+					self.image = self.walk_frames_r[self.current_frame]
+				else:			
+					self.image = self.walk_frames_l[self.current_frame]
+				self.rect = self.image.get_rect() #maybe not needed????
+
+		#show idle animations	
+		if (self.jumping is False and self.walking is False):
+			if (now - self.last_update > 600):
+				self.last_update = now
+				self.current_frame = (self.current_frame + 1) % len(self.standing_frames)
+				self.image = self.standing_frames[self.current_frame]
 
 	def collision(self, dir):
 		if (dir == 'x'):
@@ -97,10 +156,12 @@ class Player(pg.sprite.Sprite):
 			self.vel[1] = PLAYER_JUMP
 
 class Platform(pg.sprite.Sprite):
-	def __init__(self, x, y, w, h):
+	def __init__(self, game, x, y, w, h):
 		pg.sprite.Sprite.__init__(self)
-		self.image = pg.Surface((w, h))
-		self.image.fill(OBSTACLECOLOR)
+		self.game = game
+		images = [self.game.spritesheet.get_image(47, 116, 25, 25, w/20, h/20)] #self.game.spritesheet.get_image(64, 100, 22, 22, w/20, h/20)]
+		self.image = choice(images)
+		#self.image.fill(OBSTACLECOLOR)
 		self.rect = self.image.get_rect()
 		self.rect.x = x
 		self.rect.y = y
