@@ -11,15 +11,18 @@ class Spritesheet(object):
 		self.spritesheet = pg.image.load(filename).convert_alpha()
 		#self.spritesheet = pg.image.load(filename).convert()
 
-	def get_image(self, x, y, width, height):
+	def get_image(self, x, y, width, height, scalew, scaleh):
 		#grab an image out of a larger spritesheet
 		image = pg.Surface((width, height))
 		image.blit(self.spritesheet, (0, 0), (x, y, width, height))
-		image = pg.transform.scale(image, (math.trunc(width * 3.3), height * 3))
+		image = pg.transform.scale(image, (math.trunc(width * scalew), height * scaleh))
 		return image
 
 class Player(pg.sprite.Sprite):
 	def __init__(self, game):
+		self.groups = game.all_sprites
+		pg.sprite.Sprite.__init__(self, self.groups)
+
 		#reference to game
 		self.game = game
 
@@ -33,11 +36,11 @@ class Player(pg.sprite.Sprite):
 		#player jumps
 		self.extraJummps = 1
 
-		pg.sprite.Sprite.__init__(self)
 		self.image = self.standing_frames[0]
-		self.image.set_colorkey(SPRITEBACKGROUND)
+		self.image.set_colorkey(BLACK)
 		self.rect = self.image.get_rect()
 		self.rect.center = (WIDTH/2, HEIGHT/2)
+		self.mask = pg.mask.from_surface(self.image)
 
 		#movement [x, y]
 		self.pos = np.array([WIDTH/2, HEIGHT/2], dtype = np.float64)
@@ -45,14 +48,14 @@ class Player(pg.sprite.Sprite):
 		self.acc = np.array([0, 0], dtype = np.float64)
 
 	def load_images(self):
-		self.standing_frames = [self.game.spritesheet.get_image(441, 95, 17, 20),
-								self.game.spritesheet.get_image(464, 95, 17, 20)]
-		self.walk_frames_r = [self.game.spritesheet.get_image(648, 95, 16, 20),
-								self.game.spritesheet.get_image(671, 95, 16, 20)]
+		self.standing_frames = [self.game.spritesheet.get_image(441, 95, 17, 20, 3.3, 3),
+								self.game.spritesheet.get_image(464, 95, 17, 20, 3.3, 3)]
+		self.walk_frames_r = [self.game.spritesheet.get_image(648, 95, 16, 20, 3.3, 3),
+								self.game.spritesheet.get_image(671, 95, 16, 20, 3.3, 3)]
 		self.walk_frames_l = []
 		for frame in self.walk_frames_r:
 			self.walk_frames_l.append(pg.transform.flip(frame, True, False))
-		self.jump_frame = self.game.spritesheet.get_image(460, 95, 17, 20)
+		self.jump_frame = self.game.spritesheet.get_image(460, 95, 17, 20, 3.3, 3)
 
 	def update(self):
 		self.animate()
@@ -100,7 +103,7 @@ class Player(pg.sprite.Sprite):
 					self.image = self.walk_frames_r[self.current_frame]
 				else:			
 					self.image = self.walk_frames_l[self.current_frame]
-				self.rect = self.image.get_rect() #maybe not needed????
+				#self.rect = self.image.get_rect() #maybe not needed????
 
 		#show idle animations	
 		if (self.jumping is False and self.walking is False):
@@ -108,6 +111,8 @@ class Player(pg.sprite.Sprite):
 				self.last_update = now
 				self.current_frame = (self.current_frame + 1) % len(self.standing_frames)
 				self.image = self.standing_frames[self.current_frame]
+
+		self.mask = pg.mask.from_surface(self.image)
 
 	def collision(self, dir):
 		if (dir == 'x'):
@@ -120,7 +125,7 @@ class Player(pg.sprite.Sprite):
 					self.pos[0] = hits[0].rect.right + self.rect.width/2
 				self.vel[0] = 0
 				self.rect.x = self.pos[0]
-		if (dir == 'y'):
+		elif (dir == 'y'):
 			hits = pg.sprite.spritecollide(self, self.game.platforms, False)
 			if hits:
 				if self.vel[1] > 0: #moving down
@@ -131,6 +136,42 @@ class Player(pg.sprite.Sprite):
 				self.vel[1] = 0
 				self.jumping = False
 				self.rect.y = self.pos[1]
+
+	# def collision(self, dir):
+	# 	if (dir == 'x'):
+	# 		hits = False
+	# 		if self.vel[0] > 0: #moving right
+	# 			self.pos[0] += 3
+	# 			self.rect.midbottom = self.pos
+	# 			hits = pg.sprite.spritecollide(self, self.game.platforms, False)
+	# 			self.pos[0] -= 3
+	# 			self.rect.midbottom = self.pos
+	# 			if hits: 
+	# 				self.pos[0] = hits[0].rect.left - self.rect.width/2
+	# 		elif self.vel[0] < 0: #moving left
+	# 			self.pos[0] -= 3
+	# 			self.rect.midbottom = self.pos
+	# 			hits = pg.sprite.spritecollide(self, self.game.platforms, False)
+	# 			self.pos[0] += 3
+	# 			self.rect.midbottom = self.pos
+	# 			if hits:
+	# 				self.pos[0] = hits[0].rect.right + self.rect.width/2
+	# 		if hits:
+	# 			self.vel[0] = 0
+	# 			self.rect.x = self.pos[0]		
+	# 	elif (dir == 'y'):
+	# 		hits = pg.sprite.spritecollide(self, self.game.platforms, False)
+	# 		if hits:
+	# 			#so the collision make more sense on top (player isn't floating)
+	# 			if (self.pos[0] < hits[0].rect.right + 22 and self.pos[0] > hits[0].rect.left - 22): 
+	# 				if self.vel[1] > 0: #moving down
+	# 					self.pos[1] = hits[0].rect.top
+	# 					self.extraJumps = 1
+	# 				elif self.vel[1] < 0: #moving up
+	# 					self.pos[1] = hits[0].rect.bottom + self.rect.height
+	# 				self.vel[1] = 0
+	# 				self.jumping = False
+	# 				self.rect.y = self.pos[1]
 
 	def debugPlatforms(self, hits):
 		for h in hits:
@@ -167,7 +208,8 @@ class Player(pg.sprite.Sprite):
 
 class Platform(pg.sprite.Sprite):
 	def __init__(self, game, x, y, w, h):
-		pg.sprite.Sprite.__init__(self)
+		self.groups = game.all_sprites, game.platforms
+		pg.sprite.Sprite.__init__(self, self.groups)
 		self.game = game
 		self.image = pg.Surface((w, h))
 		self.image.fill(OBSTACLECOLOR)
@@ -179,3 +221,19 @@ class Platform(pg.sprite.Sprite):
 		toReturn = ""
 		toReturn += str(self.rect.x) + " : " + str(self.rect.y)
 		return toReturn
+
+class Pow(pg.sprite.Sprite):
+	def __init__(self, game, x, y, powType):
+		self.groups = game.all_sprites, game.powerups
+		pg.sprite.Sprite.__init__(self, self.groups)
+		self.game = game
+		self.type = powType
+		self.image = self.game.spritesheet.get_image(602, 648, 17, 17, 2, 2)
+		self.image.set_colorkey(BLACK)
+		self.rect = self.image.get_rect()
+		self.rect.centerx = x
+		self.rect.centery = y
+		self.mask = pg.mask.from_surface(self.image)
+
+	# def update(self):
+	# 	self.rect.

@@ -16,6 +16,11 @@ PLAYER_FRICTION = -0.25
 PLAYER_GRAVITY = 5.
 PLAYER_JUMP = -40
 
+#game properties
+BOOST_POWER = 60
+
+#powerup names
+BOOST = "boost"
 
 #starting platforms
 START = "start"
@@ -29,7 +34,10 @@ PLATFORM_LIST = [[0, HEIGHT - 40, WIDTH*2, 40], \
 			[475, 100, 50, 20], \
 			[675, 200, 50, 20], \
 			[875, 200, 50, 20], \
+			[600, 300, 50, 150], \
 			[WIDTH*2 + 100, HEIGHT - 40, WIDTH*2, 40]]
+
+POWERUP_LIST = [[900, 380, BOOST]]			
 
 #colors
 WHITE = (255, 255, 255)
@@ -42,3 +50,4 @@ OBSTACLECOLOR = (110, 110, 110)
 USERCOLOR = (200, 210, 45)
 BACKGROUNDCOLOR = (210, 210, 210)
 SPRITEBACKGROUND = (93, 128, 164)
+POWERUPCOLOR = (40, 60, 220)

@@ -37,18 +37,19 @@ class Morpher:
 		#load sounds
 		self.snd_dir = path.join(self.dir, 'snd')
 		self.jump_sound = pg.mixer.Sound(path.join(self.snd_dir, 'jump.wav'))
+		self.morph_sound = pg.mixer.Sound(path.join(self.snd_dir, 'morph1.wav'))
 
 	def new(self):
 		#resets game, initialize game
 		self.all_sprites = pg.sprite.Group()
 		self.platforms = pg.sprite.Group()
+		self.powerups = pg.sprite.Group()
 		self.player = Player(self)
-		self.all_sprites.add(self.player)
 		
 		for plat in PLATFORM_LIST:
-			p = Platform(self, *plat)
-			self.all_sprites.add(p)
-			self.platforms.add(p)
+			Platform(self, *plat)
+		for power in POWERUP_LIST:
+			Pow(self, *power)
 
 		pg.mixer.music.load(path.join(self.snd_dir, 'level.ogg'))
 
@@ -82,24 +83,31 @@ class Morpher:
 	def update(self):
 		#game loop (update)
 		self.all_sprites.update()
-		
-		#print("self.player.pos[0]0:", self.player.pos[0])
-		#print("self.player.vel[0]0: ", self.player.vel[0])
-		#print("self.player.acc[0]0: ", self.player.acc[0])
 
 		#if player reacher area where camera needs to move
 		if self.player.rect.right >= WIDTH*(2/3.):
-			# print("self.player.pos[0]1:", self.player.pos[0])
-			# print("self.player.vel[0]1: ", self.player.vel[0])
 			self.player.pos[0] -= math.trunc(self.player.vel[0])
-			# print("self.player.pos[0]2:", self.player.pos[0])
-			# print("self.player.vel[0]2: ", self.player.vel[0])
 			for plat in self.platforms:
 				plat.rect[0] -= math.trunc(self.player.vel[0])
+			for power in self.powerups:
+				power.rect[0] -= math.trunc(self.player.vel[0])
 		elif self.player.rect.left <= WIDTH*(1/3.):
 			self.player.pos[0] -= math.trunc(self.player.vel[0])
 			for plat in self.platforms:
 				plat.rect[0] -= math.trunc(self.player.vel[0])
+			for power in self.powerups:
+				power.rect[0] -= math.trunc(self.player.vel[0])
+
+		#if player hits a powerup
+		pow_hits = pg.sprite.spritecollide(self.player, self.powerups, False) #to see if we need to check masks
+		if pow_hits:
+			print("ay")
+			pow_hits = pg.sprite.spritecollide(self.player, self.powerups, True, pg.sprite.collide_mask)
+			if pow_hits:
+				if pow_hits[0] == BOOST:
+					self.morph_sound.play()
+					self.player.vel[1] = -BOOST_POWER
+					self.player.jumping = False
 
 		#if player dies
 		if (self.player.rect.bottom > HEIGHT + 100):
