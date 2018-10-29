@@ -33,13 +33,12 @@ class Player(pg.sprite.Sprite):
 		self.last_update = 0
 		self.load_images()
 
-		#player jumps
-		self.extraJummps = 1
-
 		self.image = self.standing_frames[0]
 		self.image.set_colorkey(BLACK)
 		self.rect = self.image.get_rect()
 		self.rect.center = (WIDTH/2, HEIGHT/2)
+
+		#mask for collision checking
 		self.mask = pg.mask.from_surface(self.image)
 
 		#movement [x, y]
@@ -103,7 +102,6 @@ class Player(pg.sprite.Sprite):
 					self.image = self.walk_frames_r[self.current_frame]
 				else:			
 					self.image = self.walk_frames_l[self.current_frame]
-				#self.rect = self.image.get_rect() #maybe not needed????
 
 		#show idle animations	
 		if (self.jumping is False and self.walking is False):
@@ -173,9 +171,9 @@ class Player(pg.sprite.Sprite):
 	# 				self.jumping = False
 	# 				self.rect.y = self.pos[1]
 
-	def debugPlatforms(self, hits):
-		for h in hits:
-			print(hits)
+	# def debugPlatforms(self, hits):
+	# 	for h in hits:
+	# 		print(hits)
 
 	def onPlatform(self):
 		self.rect[1] += 1
@@ -233,7 +231,9 @@ class Pow(pg.sprite.Sprite):
 		self.rect = self.image.get_rect()
 		self.rect.centerx = x
 		self.rect.centery = y
+
+		#mask for collision checking
 		self.mask = pg.mask.from_surface(self.image)
 
 	# def update(self):
-	# 	self.rect.
+	# 	self.mask = pg.mask.from_surface(self.image)

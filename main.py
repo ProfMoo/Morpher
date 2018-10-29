@@ -101,9 +101,19 @@ class Morpher:
 		#if player hits a powerup
 		pow_hits = pg.sprite.spritecollide(self.player, self.powerups, False) #to see if we need to check masks
 		if pow_hits:
-			print("ay")
+			#print("ay")
+			# a more precise collision checker
+			print("px: ", self.player.rect.x)
+			print("py: ", self.player.rect.y)
+			print("====")
+			# print("powx: ", self.powerups)
+
+			for powss in pow_hits:
+				print("x: ", powss.rect.x)
 			pow_hits = pg.sprite.spritecollide(self.player, self.powerups, True, pg.sprite.collide_mask)
+			#pow_hits = pg.sprite.spritecollide(self.player, self.powerups, True)
 			if pow_hits:
+				print("lmao")
 				if pow_hits[0] == BOOST:
 					self.morph_sound.play()
 					self.player.vel[1] = -BOOST_POWER
@@ -113,7 +123,6 @@ class Morpher:
 		if (self.player.rect.bottom > HEIGHT + 100):
 			self.deaths += 1
 			self.playing = False
-
 
 	def draw(self):
 		#game loop (draw)
