@@ -179,7 +179,7 @@ class Morpher:
 		pg.quit()
 		sys.exit()
 
-def main():
+if __name__ == '__main__':
 	m = Morpher()
 	m.show_start_screen()
 	while m.running:
@@ -188,6 +188,3 @@ def main():
 		#m.show_go_screen()
 
 	pg.quit()
-
-if __name__ == '__main__':
-    main()

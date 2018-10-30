@@ -1,0 +1,4 @@
+ideas:
+(1) be able to hold onto a wall by holding into it?
+(2) be able to hold down and 'sit down' when on a platform?
+(3) have a function that 'converts' a player to a different type. (put in some new images?)
