@@ -101,23 +101,11 @@ class Morpher:
 		#if player hits a powerup
 		pow_hits = pg.sprite.spritecollide(self.player, self.powerups, False) #to see if we need to check masks
 		if pow_hits:
-			#print("ay")
-			# a more precise collision checker
-			print("px: ", self.player.rect.x)
-			print("py: ", self.player.rect.y)
-			print("====")
-			# print("powx: ", self.powerups)
-
-			for powss in pow_hits:
-				print("x: ", powss.rect.x)
-			pow_hits = pg.sprite.spritecollide(self.player, self.powerups, True, pg.sprite.collide_mask)
-			#pow_hits = pg.sprite.spritecollide(self.player, self.powerups, True)
-			if pow_hits:
-				print("lmao")
-				if pow_hits[0] == BOOST:
-					self.morph_sound.play()
-					self.player.vel[1] = -BOOST_POWER
-					self.player.jumping = False
+			# a more precise collision checker, with image masking
+			pow_hits = pg.sprite.spritecollide(self.player, self.powerups, False, pg.sprite.collide_mask)
+			if pow_hits: #actual hit
+				for powerup in pow_hits:
+					powerup.hit(self.player) #call hit function
 
 		#if player dies
 		if (self.player.rect.bottom > HEIGHT + 100):
@@ -125,22 +113,27 @@ class Morpher:
 			self.playing = False
 
 	def draw(self):
-		#game loop (draw)
+		#game loop
 		self.screen.fill(BLACK)
 		self.all_sprites.draw(self.screen)
 		self.draw_text(("Deaths: " + str(self.deaths)), 22, WHITE, WIDTH/2, 15)
 		pg.display.flip()
 
+	#game start screen
 	def show_start_screen(self):
-		#game start screen
+		#play music on endless loop
 		pg.mixer.music.load(path.join(self.snd_dir, 'mainmenu.ogg'))
 		pg.mixer.music.play(-1)
+
+		#drawing in the start screen
 		self.screen.fill(BACKGROUNDCOLOR)
 		self.draw_text(TITLE, 50, BLACK, WIDTH/2, HEIGHT/4)
 		self.draw_text("Arrows to move, Space to jump", 22, BLACK, WIDTH/2, HEIGHT/2)
 		self.draw_text("Press a key to play", 22, BLACK, WIDTH/2, HEIGHT*(3/4.))
 		self.draw_text("High score: " + str(self.highscore), 22, BLACK, WIDTH/2, HEIGHT*(7/8.))
 		pg.display.flip()
+
+		#wait for key, then fade out music
 		self.wait_for_key()
 		pg.mixer.fadeout(200)
 

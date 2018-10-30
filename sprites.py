@@ -88,11 +88,15 @@ class Player(pg.sprite.Sprite):
 		self.rect.midbottom = self.pos
 
 	def animate(self):
+		#getting current time
 		now = pg.time.get_ticks()
+
+		#seeing if player is walking or standing
 		if (self.vel[0] != 0):
 			self.walking = True
 		else:
 			self.walking = False
+
 		#show walk animations
 		if (self.walking):
 			if (now - self.last_update > 100):
@@ -110,6 +114,7 @@ class Player(pg.sprite.Sprite):
 				self.current_frame = (self.current_frame + 1) % len(self.standing_frames)
 				self.image = self.standing_frames[self.current_frame]
 
+		self.image.set_colorkey(BLACK) #to reduce lag, move this to only when you update the image??
 		self.mask = pg.mask.from_surface(self.image)
 
 	def collision(self, dir):
@@ -171,10 +176,7 @@ class Player(pg.sprite.Sprite):
 	# 				self.jumping = False
 	# 				self.rect.y = self.pos[1]
 
-	# def debugPlatforms(self, hits):
-	# 	for h in hits:
-	# 		print(hits)
-
+	# a check to see if there is a platform underneath to jump on
 	def onPlatform(self):
 		self.rect[1] += 1
 		hits = pg.sprite.spritecollide(self, self.game.platforms, False)
@@ -184,11 +186,13 @@ class Player(pg.sprite.Sprite):
 		else:
 			return False
 
+	# the short hop
 	def jump_cut(self):
 		if (self.jumping):
 			if (self.vel[1] < -15):
 				self.vel[1] = -15
 
+	# player jumping function
 	def jump(self):
 		#jump only if standing on a platform
 		self.rect[1] += 1
@@ -232,8 +236,23 @@ class Pow(pg.sprite.Sprite):
 		self.rect.centerx = x
 		self.rect.centery = y
 
+		# for collision and timing
+		self.active = True
+		self.hit_time = pg.time.get_ticks() - 100
+
 		#mask for collision checking
 		self.mask = pg.mask.from_surface(self.image)
 
-	# def update(self):
-	# 	self.mask = pg.mask.from_surface(self.image)
+	#the powerup update
+	def update(self):
+		now = pg.time.get_ticks()
+		if (now - self.hit_time > 1000):
+			self.active = True
+
+
+	# when the player hits a powerup
+	def hit(self, player):
+		if (self.active):
+			self.active = False
+			self.hit_time = pg.time.get_ticks()
+			player.vel[1] = -50
