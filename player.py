@@ -1,22 +1,6 @@
-#sprite classes
 import pygame as pg
 import numpy as np
-import math
-from random import choice
 from settings import *
-
-class Spritesheet(object):
-	#utility class for loading and parsing spritesheets
-	def __init__(self, filename):
-		self.spritesheet = pg.image.load(filename).convert_alpha()
-		#self.spritesheet = pg.image.load(filename).convert()
-
-	def get_image(self, x, y, width, height, scalew, scaleh):
-		#grab an image out of a larger spritesheet
-		image = pg.Surface((width, height))
-		image.blit(self.spritesheet, (0, 0), (x, y, width, height))
-		image = pg.transform.scale(image, (math.trunc(width * scalew), height * scaleh))
-		return image
 
 class Player(pg.sprite.Sprite):
 	def __init__(self, game):
@@ -26,17 +10,20 @@ class Player(pg.sprite.Sprite):
 		#reference to game
 		self.game = game
 
-		#for images mostly
+		#for images
 		self.walking = False
 		self.jumping = False
 		self.current_frame = 0
 		self.last_update = 0
 		self.load_images()
-
 		self.image = self.standing_frames[0]
 		self.image.set_colorkey(BLACK)
+
+		#make rectangle for collision checking and all references
 		self.rect = self.image.get_rect()
 		self.rect.center = (WIDTH/2, HEIGHT/2)
+
+		self.hitbox = pg.Rect(self.rect)
 
 		#mask for collision checking
 		self.mask = pg.mask.from_surface(self.image)
@@ -79,13 +66,10 @@ class Player(pg.sprite.Sprite):
 		self.rect.midbottom = self.pos
 		self.collision('y')
 
-		#wrap around screen
-		# if (self.pos[0] > WIDTH):
-		# 	self.pos[0] = 0
-		# elif (self.pos[0] < 0):
-		# 	self.pos[0] = WIDTH
-
 		self.rect.midbottom = self.pos
+
+		#update hitbox
+		self.hitbox = pg.Rect(self.rect.x + 2, self.rect.y, self.rect.width - 4, self.rect.height + 2)
 
 	def animate(self):
 		#getting current time
@@ -144,32 +128,28 @@ class Player(pg.sprite.Sprite):
 	# 	if (dir == 'x'):
 	# 		hits = False
 	# 		if self.vel[0] > 0: #moving right
-	# 			self.pos[0] += 3
-	# 			self.rect.midbottom = self.pos
+	# 			self.rect[0] += 22 #moves the player to the outside where i want them to interact with platform
 	# 			hits = pg.sprite.spritecollide(self, self.game.platforms, False)
-	# 			self.pos[0] -= 3
-	# 			self.rect.midbottom = self.pos
-	# 			if hits: 
+	# 			self.rect[0] -= 22
+	# 			if hits: #if we'd like to place the player on the left of the platform
 	# 				self.pos[0] = hits[0].rect.left - self.rect.width/2
 	# 		elif self.vel[0] < 0: #moving left
-	# 			self.pos[0] -= 3
-	# 			self.rect.midbottom = self.pos
+	# 			self.rect[0] -= 22
 	# 			hits = pg.sprite.spritecollide(self, self.game.platforms, False)
-	# 			self.pos[0] += 3
-	# 			self.rect.midbottom = self.pos
-	# 			if hits:
+	# 			self.rect[0] += 22
+	# 			if hits: #if we'd like to place the player on the right of the platform
 	# 				self.pos[0] = hits[0].rect.right + self.rect.width/2
-	# 		if hits:
+	# 		if hits: #if there is contact
 	# 			self.vel[0] = 0
 	# 			self.rect.x = self.pos[0]		
 	# 	elif (dir == 'y'):
 	# 		hits = pg.sprite.spritecollide(self, self.game.platforms, False)
 	# 		if hits:
-	# 			#so the collision make more sense on top (player isn't floating)
+	# 			#if the player is within 22 of the edge of the platform
 	# 			if (self.pos[0] < hits[0].rect.right + 22 and self.pos[0] > hits[0].rect.left - 22): 
 	# 				if self.vel[1] > 0: #moving down
-	# 					self.pos[1] = hits[0].rect.top
-	# 					self.extraJumps = 1
+	# 					self.pos[1] = hits[0].rect.top 
+	# 					self.extraJumps = 1 #make it so the player can jump if he slides off the platform
 	# 				elif self.vel[1] < 0: #moving up
 	# 					self.pos[1] = hits[0].rect.bottom + self.rect.height
 	# 				self.vel[1] = 0
@@ -207,52 +187,3 @@ class Player(pg.sprite.Sprite):
 			self.game.jump_sound.play()
 			self.vel[1] = PLAYER_JUMP
 			self.jumping = True
-
-class Platform(pg.sprite.Sprite):
-	def __init__(self, game, x, y, w, h):
-		self.groups = game.all_sprites, game.platforms
-		pg.sprite.Sprite.__init__(self, self.groups)
-		self.game = game
-		self.image = pg.Surface((w, h))
-		self.image.fill(OBSTACLECOLOR)
-		self.rect = self.image.get_rect()
-		self.rect.x = x
-		self.rect.y = y
-
-	def __str__(self):
-		toReturn = ""
-		toReturn += str(self.rect.x) + " : " + str(self.rect.y)
-		return toReturn
-
-class Pow(pg.sprite.Sprite):
-	def __init__(self, game, x, y, powType):
-		self.groups = game.all_sprites, game.powerups
-		pg.sprite.Sprite.__init__(self, self.groups)
-		self.game = game
-		self.type = powType
-		self.image = self.game.spritesheet.get_image(602, 648, 17, 17, 2, 2)
-		self.image.set_colorkey(BLACK)
-		self.rect = self.image.get_rect()
-		self.rect.centerx = x
-		self.rect.centery = y
-
-		# for collision and timing
-		self.active = True
-		self.hit_time = pg.time.get_ticks() - 100
-
-		#mask for collision checking
-		self.mask = pg.mask.from_surface(self.image)
-
-	#the powerup update
-	def update(self):
-		now = pg.time.get_ticks()
-		if (now - self.hit_time > 1000):
-			self.active = True
-
-
-	# when the player hits a powerup
-	def hit(self, player):
-		if (self.active):
-			self.active = False
-			self.hit_time = pg.time.get_ticks()
-			player.vel[1] = -50

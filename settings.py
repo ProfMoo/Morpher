@@ -28,6 +28,7 @@ MIDDLE = "middle"
 END = "end"
 #x and y in incs of 80
 PLATFORM_LIST = [[0, HEIGHT - 40, WIDTH*2, 40], \
+			[50, 350, 100, 20], \
 			[WIDTH/2 - 50, HEIGHT - 120, 100, 20], \
 			[125, HEIGHT - 350, 100, 20], \
 			[350, 200, 100, 20], \
@@ -51,3 +52,7 @@ USERCOLOR = (200, 210, 45)
 BACKGROUNDCOLOR = (210, 210, 210)
 SPRITEBACKGROUND = (93, 128, 164)
 POWERUPCOLOR = (40, 60, 220)
+
+#progamming options
+DEBUG = "debug"
+NORMAL = "normal"

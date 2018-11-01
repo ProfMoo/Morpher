@@ -1,12 +1,24 @@
+#Morpher
+#Shane O'Brien
+
+#importing all libraries used in game
 import pygame as pg
 import random
 import sys
 import time
 import math
+import sys
 
+#used to locate sound and images
 from os import path
+
+#importing all the classes for the project
 from settings import *
-from sprites import *
+from player import *
+from spritesheet import *
+from powerup import *
+from platform import *
+from settings import *
 
 class Morpher:
 	def __init__(self):
@@ -20,6 +32,13 @@ class Morpher:
 		self.font_name = pg.font.match_font(FONT_NAME)
 		self.deaths = 0
 		self.load_data()
+
+		self.run_time_mode = NORMAL
+
+	def check_args(self):
+		if (len(sys.argv) == 2):
+			if (sys.argv[1] == "debug"):
+				self.run_time_mode = DEBUG
 
 	def load_data(self):
 		#load high score
@@ -112,10 +131,15 @@ class Morpher:
 			self.deaths += 1
 			self.playing = False
 
+	def debug_draw(self):
+		pg.draw.rect(self.screen, RED, self.player.hitbox)
+
 	def draw(self):
 		#game loop
 		self.screen.fill(BLACK)
 		self.all_sprites.draw(self.screen)
+		if (self.run_time_mode == DEBUG):
+			self.debug_draw()
 		self.draw_text(("Deaths: " + str(self.deaths)), 22, WHITE, WIDTH/2, 15)
 		pg.display.flip()
 
@@ -181,6 +205,7 @@ class Morpher:
 
 if __name__ == '__main__':
 	m = Morpher()
+	m.check_args()
 	m.show_start_screen()
 	while m.running:
 		m.new()
