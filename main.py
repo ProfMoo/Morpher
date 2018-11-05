@@ -132,7 +132,7 @@ class Morpher:
 			self.playing = False
 
 	def debug_draw(self):
-		pg.draw.rect(self.screen, RED, self.player.hitbox)
+		pg.draw.rect(self.screen, RED, self.player.rect)
 
 	def draw(self):
 		#game loop
